@@ -1,3 +1,5 @@
+// Logan Schwarz
+// Garrett Green
 import java.util.HashMap;
 
 public class instruction {

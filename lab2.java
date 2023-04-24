@@ -1,9 +1,11 @@
+// Logan Schwarz
+// Garrett Green
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class Assembler {
+public class lab2 {
     
     public static void main(String[] args){
 
