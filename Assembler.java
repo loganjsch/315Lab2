@@ -2,16 +2,23 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
-import java.util.Map.Entry;
 
 public class Assembler {
     
     public static void main(String[] args){
 
+        if (args.length == 0) {
+            System.out.println("No arguments passed!");
+            return;
+        }
+
         // Initialize
-        File infile = new File("test1.asm");
+        File infile = new File(args[0]);
+        if (!infile.isFile()) {
+            System.out.println(args[0] + " is not a file!");
+            return;
+        }
         StringBuilder output = new StringBuilder();
-        File outfile = new File("output.txt");
         HashMap<String, Integer> labelMap = new HashMap<>();
         int lineCount = 0;
 
@@ -44,8 +51,6 @@ public class Assembler {
                 }
             }
             scanner.close();    
-            // Output the label table
-            printLabelTable(labelMap);
         }
         catch (FileNotFoundException e) {
             System.out.println("Error.");
@@ -55,7 +60,6 @@ public class Assembler {
         // second pass 
         try {
             Scanner scanner = new Scanner(infile); 
-            PrintWriter writer = new PrintWriter(outfile);
 
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
@@ -83,32 +87,24 @@ public class Assembler {
                             // ignore whitespace
                         }
                         else {
-                            writer.print(' ');
                             output.append(' ');
                             leadingwhitespace = true;
                         }
                     } else if (c == ',' || c == '(' || c == ')') {
                         output.append(' ');
-                        writer.print(' ');
                     } else if (c == '$') {
                             output.append(' ');
                             output.append(c);
-                            writer.print(' ');
-                            writer.print(c);
                             leadingwhitespace = false;
                     } else if (!inlinecomment) {
                         output.append(c);
-                        writer.print(c);
                         leadingwhitespace = false;
                     }
                 }
                 // Newline
-                writer.println();
                 output.append('\n');
             }
             scanner.close();
-            writer.close();
-
         }
         catch (FileNotFoundException e) {
             System.out.println("Error.");
@@ -121,17 +117,15 @@ public class Assembler {
         outputArray = Arrays.stream(outputArray).filter(s -> !s.trim().isEmpty()).toArray(String[]::new);
 
         // print label table 
-        printLabelTable(labelMap);
+        // printLabelTable(labelMap);
         // print the array being set to convert to binary 
-        printArray(outputArray);
+        // printArray(outputArray);
         // Convert outputArray to Binary
         stringToBinary(outputArray, labelMap);
 
 
     }
-
-
-
+    /* 
     public static void printArray(String[] outputArray){
         for (String line : outputArray){
             System.out.println(line);
@@ -144,16 +138,13 @@ public class Assembler {
             System.out.println(entry.getKey() + " = " + entry.getValue());
         }
     }
-
+    */
     public static void stringToBinary(String[] outputArray, HashMap<String, Integer> labelMap){
         int linecount = 0;
         for (String line : outputArray) {
 
-            
-            System.out.println(line);
             instruction instr = new instruction(line);
             System.out.print(instr.returnBinary());
-
 
             String[] words = line.split("\\s+");
             if (words[0].equals("beq") || words[0].equals("bne") ) {
@@ -164,11 +155,9 @@ public class Assembler {
                 System.out.print(paddedBinOffset);
             }
             if (words[0].equals("j") || words[0].equals("jal") ) {
-                int offset = labelMap.get(words[1]) - (linecount + 1);
-                String binOffset = Integer.toBinaryString(offset);
-                String paddedBinOffset = String.format("%16s", binOffset).replace(' ', '0');
-                paddedBinOffset = paddedBinOffset.substring(paddedBinOffset.length() - 16);
-                System.out.print(paddedBinOffset);
+                String labelLocation = Integer.toBinaryString(labelMap.get(words[1]));
+                String paddedLabelLocation = String.format("%26s", labelLocation).replace(' ', '0');
+                System.out.print(paddedLabelLocation);
             }
             if (instr.returnBinary().split("\\s+")[0].equals("invalid")) {
                 System.exit(0);
